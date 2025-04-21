@@ -1,0 +1,21 @@
+# Dépendances
+/node_modules
+
+# Fichiers d'environnement
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Système
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
