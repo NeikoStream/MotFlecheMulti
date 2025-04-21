@@ -1,58 +1,55 @@
 const express = require('express');
 const http = require('http');
-const cors = require('cors');
 const { Server } = require('socket.io');
-require('dotenv').config();
+const cors = require('cors');
 
-// Initialisation de l'application Express
 const app = express();
+const server = http.createServer(app);
 
-// Configuration des middleware
+// Configuration CORS correcte pour accepter les requêtes depuis le client Vite
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST'],
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Les origines de votre client
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
+
+// Middleware pour le parsing JSON
 app.use(express.json());
 
-// Routes API
+// Route de test pour l'API
 app.get('/api/status', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'Le serveur API fonctionne correctement!',
-    env: process.env.NODE_ENV,
-    timestamp: new Date().toISOString()
+    env: process.env.NODE_ENV || 'development',
+    timestamp: new Date()
   });
 });
 
-// Création du serveur HTTP
-const server = http.createServer(app);
-
-// Configuration de Socket.io
+// Configuration de Socket.IO avec les options CORS
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    methods: ['GET', 'POST'],
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-// Gestion des connexions Socket.io
+// Gestion des connexions socket
 io.on('connection', (socket) => {
   console.log('Nouvelle connexion socket:', socket.id);
   
-  // Test de connexion
-  socket.emit('welcome', { message: 'Bienvenue sur le serveur de jeu!' });
+  // Envoyer un message de bienvenue
+  socket.emit('message', 'Bienvenue sur le serveur de jeu!');
   
+  // Gérer la déconnexion
   socket.on('disconnect', () => {
-    console.log('Déconnexion socket:', socket.id);
+    console.log('Un utilisateur s\'est déconnecté:', socket.id);
   });
 });
 
-// Configuration du port et démarrage du serveur
+// Démarrer le serveur
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
-  console.log(`API disponible à http://localhost:${PORT}/api`);
-  console.log(`Socket.IO configuré pour accepter les connexions de ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+  console.log(`Serveur en écoute sur http://localhost:${PORT}`);
 });
